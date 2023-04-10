@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EXERCICE_TYPE {
+  VIRTUAL_MACHINE
+  CONSOLE
+}
+
+model User {
+  id            Int                @default(autoincrement()) @id
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  email         String             @unique
+  firstname     String?            @db.VarChar(100)
+  lastname      String?            @db.VarChar(100)
+  isAdmin       Boolean            @default(false)
+  exercicesDone ExercicesOnUsers[]
+}
+
+model Category {
+  id          Int        @default(autoincrement()) @id
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  label       String     @db.VarChar(100)
+  description String?    @db.VarChar(255)
+  exercices   Exercice[]
+}
+
+model Exercice {
+  id         Int                @default(autoincrement()) @id
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  statement  String             @db.VarChar(255)
+  response   String?            @db.VarChar(255)
+  doneBy     ExercicesOnUsers[]
+  category   Category           @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  type       EXERCICE_TYPE
+}
+
+model ExercicesOnUsers {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  exercice   Exercice @relation(fields: [exerciceId], references: [id])
+  exerciceId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@id([userId, exerciceId])
+}
